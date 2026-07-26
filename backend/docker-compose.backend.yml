@@ -1,0 +1,64 @@
+name: mining-backend
+
+services:
+  tile_api:
+    build:
+      context: .
+    image: mining_backend_app:latest
+    container_name: mining_tile_api
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      MINING_DB_URL:    ${MINING_DB_URL:?MINING_DB_URL}
+      FRONTEND_ORIGIN:  ${FRONTEND_ORIGIN:-http://localhost:5173}
+      PORT:             9000
+      AIRFLOW_BASE_URL:    ${AIRFLOW_BASE_URL:-http://airflow-webserver:8090}
+      AIRFLOW_USERNAME:    ${AIRFLOW_USERNAME:-admin}
+      AIRFLOW_PASSWORD:    ${AIRFLOW_PASSWORD:-admin}
+      AIRFLOW_DAG_ID:      ${AIRFLOW_DAG_ID:-Global_mining_pipeline_Approach2}
+      AIRFLOW_API_PREFIX:  ${AIRFLOW_API_PREFIX:-/api/v2}
+      CF_ACCESS_CLIENT_ID:     ${CF_ACCESS_CLIENT_ID:-}
+      CF_ACCESS_CLIENT_SECRET: ${CF_ACCESS_CLIENT_SECRET:-}
+    ports:
+      - "9000:9000"
+    restart: always
+    networks: [mining_net]
+
+  martin:
+    image: ghcr.io/maplibre/martin:latest
+    container_name: mining_martin
+    command: ["--config", "/config/martin-config.yaml"]
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      DATABASE_URL: ${MARTIN_DATABASE_URL:-${MINING_DB_URL}}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./martin-config.yaml:/config/martin-config.yaml:ro
+    restart: always
+    networks: [mining_net]
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: mining_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: houda@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: always
+    networks: [mining_net]
+
+volumes:
+  pgadmin_data:
+
+networks:
+  mining_net:
+    external: true

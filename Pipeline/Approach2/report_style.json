@@ -1,0 +1,19 @@
+{
+  "colors": {
+    "primary": "#4A6572",
+    "secondary": "#889CA6",
+    "accent": "#C8A97E",
+    "bg_light": "#F4F5F7",
+    "text_main": "#343A40",
+    "text_muted": "#6C757D",
+    "success": "#528258",
+    "danger": "#BA5A5A",
+    "warning": "#C98A4B",
+    "white": "#FFFFFF"
+  },
+  "spacing": {
+    "table_pad_v": 8,
+    "table_pad_h": 8,
+    "kpi_row_heights": [50, 20]
+  }
+}

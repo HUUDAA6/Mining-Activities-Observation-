@@ -1,0 +1,23 @@
+name: mining-microservice
+
+services:
+  ingest_watcher:
+    build:
+      context: .
+    image: mining_ingest_watcher:latest
+    container_name: mining_ingest_watcher
+  
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      MINING_DB_URL:                     ${MINING_DB_URL:?MINING_DB_URL}
+      AZURE_STORAGE_CONNECTION_STRING:   ${AZURE_STORAGE_CONNECTION_STRING:?AZURE_STORAGE_CONNECTION_STRING}
+      MINING_AZURE_CONTAINER:            ${MINING_AZURE_CONTAINER:-mining}
+      MINING_POLL_INTERVAL:              ${MINING_POLL_INTERVAL:-30}
+    restart: always
+    networks: [mining_net]
+
+networks:
+  mining_net:
+    external: true

@@ -1,0 +1,26 @@
+# Airflow
+apache-airflow==3.0.2
+apache-airflow-providers-standard
+apache-airflow-providers-microsoft-azure
+
+# PostGIS ingest 
+psycopg2-binary==2.9.9
+
+# Geospatial 
+rasterio==1.3.10
+rioxarray==0.15.5
+dem-stitcher==2.5.5
+geopandas==0.14.4
+shapely==2.0.4
+contextily==1.6.0
+
+# Scientific stack 
+numpy==1.26.4
+scipy==1.13.1
+matplotlib==3.8.4
+
+# Reporting 
+reportlab==4.2.0
+fastapi 
+uvicorn 
+sqlalchemy 

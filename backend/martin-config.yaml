@@ -1,0 +1,14 @@
+postgres:
+  connection_string: "${DATABASE_URL}"
+
+  auto_publish:
+    tables: false
+    functions: false
+
+  # my tile function
+  functions:
+    mining_tiles:
+      schema: public
+      function: mining_polygons
+      minzoom: 4
+      maxzoom: 22

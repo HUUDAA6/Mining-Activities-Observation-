@@ -1,0 +1,29 @@
+name: mining-frontend
+
+services:
+  frontend:
+    build:
+      context: .
+    image: mining_frontend:latest
+    container_name: mining_frontend
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      VITE_MAPBOX_TOKEN:  ${VITE_MAPBOX_TOKEN:-${MAPBOX_TOKEN}}
+      VITE_API_BASE:      ${VITE_API_BASE:-http://localhost:9000}
+      VITE_MARTIN_BASE:   ${VITE_MARTIN_BASE:-http://localhost:3000}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.js:/app/vite.config.js
+      - ./eslint.config.js:/app/eslint.config.js
+    restart: unless-stopped
+    networks: [mining_net]
+
+networks:
+  mining_net:
+    external: true

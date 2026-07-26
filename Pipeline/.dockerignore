@@ -1,0 +1,9 @@
+__pycache__
+*.pyc
+*.pyo
+.venv
+.git
+.gitignore
+logs
+docker-compose*.yml
+Approach2/DEM_Downloads

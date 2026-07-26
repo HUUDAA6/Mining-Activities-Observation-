@@ -1,0 +1,26 @@
+.env
+.env.local
+.env.*.local
+*.env
+
+# Data 
+Approach2/DEM_Downloads/
+
+# Logs
+logs/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,5 @@
+azure-storage-blob
+geopandas
+shapely
+sqlalchemy
+psycopg2-binary
