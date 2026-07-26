@@ -2,7 +2,7 @@
 
 A platform for monitoring open-pit mining activity from satellite elevation data.
 
-I built this during my internship as a data engineer at a mining-tech company. The idea was simple: instead of sending someone to a mining site or flying drones over it, let the user draw a bounding box on a map and automatically analyse how the terrain changed between two points in time.
+I built this during my internship as a data engineer at a tech company. The idea was simple: instead of sending someone to a mining site or flying drones over it, let the user draw a bounding box on a map and automatically analyse how the terrain changed between two points in time.
 
 Behind the scenes, the system fetches Digital Elevation Models (DEMs) for the selected area, aligns them, compares them, and calculates exactly how much material was excavated or deposited. The results are turned into polygons showing where changes happened, volume estimates in cubic metres, activity classifications, and an interactive dashboard.
 
