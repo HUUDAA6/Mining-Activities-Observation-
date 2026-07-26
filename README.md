@@ -92,7 +92,3 @@ Photos/        Screenshots used in this README
 ```
 
 There's no root docker-compose stitching all four together on purpose — in production they lived on separate infra, connected through Azure and Cloudflare rather than one shared docker network, and this repo mirrors that.
-
-## About running this yourself
-
-It won't spin up out of the box, and that's intentional — it was built against Arias Tech Solutions' own Azure storage, database, and Airflow instance, and the `.env` files that pointed to those were left out before this ever hit GitHub. What's here is the real architecture and the real code, meant to be read, not a deploy-and-go demo.
