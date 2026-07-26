@@ -1,94 +1,193 @@
 # Mining Activities Observation
 
-A platform that watches open-pit mining sites from space and tells you what changed on the ground.
+A platform for monitoring open-pit mining activity from satellite elevation data.
 
-I built this during my internship at Arias Tech Solutions. You draw a bounding box on a map, and behind the scenes a pipeline pulls elevation data for two time periods, lines them up, and works out exactly how much earth was cut and how much was filled in between. That number gets turned into polygons of "changed" zones, a volume in cubic meters, an activity level, and a full dashboard — no site visit, no drone, nothing but public satellite elevation data and some geometry.
+I built this during my internship at Arias Tech Solutions. The idea was simple: instead of sending someone to a mining site or flying drones over it, let the user draw a bounding box on a map and automatically analyse how the terrain changed between two points in time.
 
-This is a portfolio copy of the code I actually wrote and shipped there. It isn't deployed anywhere anymore and all credentials have been stripped out before pushing, but nothing here is a rewrite or a cleaned-up "presentable" version — it's the real thing.
+Behind the scenes, the system fetches Digital Elevation Models (DEMs) for the selected area, aligns them, compares them, and calculates exactly how much material was excavated or deposited. The results are turned into polygons showing where changes happened, volume estimates in cubic metres, activity classifications, and an interactive dashboard.
+
+This repository is a portfolio copy of the code I wrote while working there. It isn't deployed anymore, all credentials have been removed, and some configuration has been stripped for security, but the code itself is the same code that was used during the internship. I didn't rewrite or simplify it afterwards just to make it look nicer.
 
 ## Watch it work
 
-- 🎥 [**Pipeline run** — triggering a job and watching it produce results, live](https://drive.google.com/file/d/1msR7bhnWQ0Es2rzAV6qO26oRVWY1I1gB/view?usp=sharing)
-- 🎥 [**Full platform tour** — the map, the dashboards, the Mapbox layers, all of it](https://drive.google.com/file/d/111poAkdhTDMC2zfOvVsJPPaRx8kWbvC8/view?usp=sharing)
+🎥 [**Pipeline run**](https://drive.google.com/file/d/1msR7bhnWQ0Es2rzAV6qO26oRVWY1I1gB/view?usp=sharing) – triggering a new analysis and following every processing step live.
+
+🎥 [**Full platform tour**](https://drive.google.com/file/d/111poAkdhTDMC2zfOvVsJPPaRx8kWbvC8/view?usp=sharing) – exploring the interactive map, dashboards, pipeline monitor, and layer controls.
 
 ![Map view of mining sites across North Africa](Photos/UI%20Plateforme.PNG)
 
-## What's actually in it
+---
 
-Draw a box anywhere on the map and it kicks off a real analysis, not a mock one. The pipeline fetches DEMs — Digital Elevation Models, grids of ground-height values — for two dates, aligns them pixel for pixel, and subtracts one from the other. That difference is what geologists call a DoD, a DEM of Difference, and it's the standard way to measure how much material physically moved on a site between two points in time.
+## What the platform does
 
-Every site comes back with numbers that mean something: net volume in m³, max excavation depth, a cut/fill ratio, percentage of the area disturbed. Not "something changed here," but *how much*, and in which direction.
+Everything starts with drawing a bounding box on the map.
+
+That immediately triggers a real processing pipeline. The system downloads elevation data for two different dates, aligns both datasets so every pixel represents the same location, then subtracts one elevation model from the other.
+
+This produces a DEM of Difference (DoD), which is the standard approach used in geospatial analysis to measure terrain changes over time.
+
+From that difference, the platform calculates meaningful metrics including:
+
+- Volume of excavated or deposited material (m³)
+- Maximum excavation depth
+- Cut-to-fill ratio
+- Percentage of disturbed ground
+- Detected change polygons
+- Activity level classification
+
+Rather than simply saying that something changed, the platform measures how much ground moved and where it happened.
 
 | | |
 |---|---|
 | ![Site detail with cut/fill KPIs](Photos/UI%20Dasboard%20Area.png) | ![Change classes and elevation histogram](Photos/UI%20change%20classes.PNG) |
 
-Zoom out and there's a global dashboard sitting on top of all of it — volume by country, a risk-distribution donut across every tracked site, activity levels split low/medium/high. Built for the case where you're not watching one pit, you're watching dozens.
+---
 
-![Global dashboard with volume-by-country and risk distribution](Photos/Dashboard%20Areas.PNG)
+## Dashboards
 
-Pipeline runs aren't a black box either. Every job streams its own progress back to the browser in real time, step by step — fetching DEMs, aligning, vectorizing change zones, uploading the report — so you're watching it happen instead of refreshing a page and hoping.
+The platform is designed to monitor many mining sites at once rather than a single location.
+
+The dashboard aggregates information across every analysed site and displays total moved volume, activity levels, country-level statistics, and overall risk distribution.
+
+This makes it easy to identify the sites that deserve attention without opening every analysis individually.
+
+![Global dashboard with volume by country and risk distribution](Photos/Dashboard%20Areas.PNG)
+
+---
+
+## Live pipeline monitoring
+
+Every analysis job reports its progress back to the browser in real time.
+
+Instead of submitting a request and waiting for a result, you can watch each stage as it runs, including downloading elevation data, aligning rasters, calculating differences, vectorising change areas, generating reports, and uploading the final outputs.
+
+Completed runs are also stored in a history view so previous analyses can be reviewed at any time.
 
 | | |
 |---|---|
-| ![Live pipeline run progress](Photos/UI%20pipeline%20live.PNG) | ![Pipeline step detail and stop confirmation](Photos/UI%20PIipeline%20Actions.PNG) |
-| ![Pipeline run history dashboard](Photos/UI%20Dashboard%20Pipelines.PNG) | |
+| ![Live pipeline progress](Photos/UI%20pipeline%20live.PNG) | ![Pipeline step details](Photos/UI%20PIipeline%20Actions.PNG) |
+| ![Pipeline history dashboard](Photos/UI%20Dashboard%20Pipelines.PNG) | |
 
-There are also free NASA GIBS layers baked into the map — vegetation index, precipitation, land surface temperature — sitting underneath the polygons at whatever opacity you set. Handy for a sanity check when a "disturbed area" spike shows up: is that actually mining, or did it just rain a lot that month?
+---
 
-![NASA GIBS data layers panel](Photos/Nasa%20APIs%20UI.PNG)
+## Environmental context
 
-And the basemap switches between satellite, dark, light, oceanic, topographic, and raw DEM — because inspecting terrain and presenting to a client are two different jobs that want two different maps.
+The map also includes several freely available NASA GIBS layers such as vegetation index, precipitation, and land surface temperature.
 
-![Map style and layer controls](Photos/UI%20Mapbox%20Templates.PNG)
+These layers can be displayed underneath the mining polygons with adjustable opacity, making it easier to interpret whether detected terrain changes are likely related to mining activity or environmental conditions.
 
-## How the four pieces fit together
+![NASA GIBS layers](Photos/Nasa%20APIs%20UI.PNG)
 
-```
-  browser (React)
-      │
-      ▼
-  backend (FastAPI) ──────► PostGIS   (sites, polygons, dashboard queries)
-      │       │
-      │       └──────────► Airflow REST API   (trigger + poll runs, via Cloudflare Access)
-      │
-      ▼
-  Pipeline (Airflow DAG) ──► fetch DEMs → align → diff → vectorize → PDF report → Azure Blob
-                                                                            │
-                                                                            ▼
-  Microservice (watcher) ◄───────────────────────────────────────── polls Azure, writes to PostGIS
-```
+---
 
-**`frontend/`** — React 19, Vite, Mapbox GL. The map, the draw-a-box tool, the dashboards, the pipeline monitor. It only ever talks to the backend — never to Airflow or Azure directly.
+## Map styles
 
-**`backend/`** — FastAPI over PostGIS with SQLAlchemy. Serves site and dashboard data, and sits in front of Airflow as a proxy so the browser never needs Airflow credentials at all — that hop goes through Cloudflare Access instead. Vector tiles are served separately by [Martin](https://github.com/maplibre/martin) (`backend/martin-config.yaml`).
+Different tasks require different maps.
 
-**`Pipeline/`** — The actual Airflow DAG (`mining_pipeline_bbox.py`) plus the processing scripts behind it in `Approach2/`: fetch elevation data, align two rasters, calculate the DoD, vectorize the changed zones, render a PDF site report with matplotlib/rasterio/reportlab, push everything to Azure Blob Storage. It's idempotent by design — rerunning the same bounding box finds the cached result instead of redoing the work from scratch.
+For that reason the platform supports several basemaps, including satellite imagery, light and dark themes, topographic maps, ocean maps, and raw elevation data.
 
-**`Microservice/`** — A small watcher (`ingest_watcher.py`) that polls Azure for finished pipeline output, reverse-geocodes each site's country from its coordinates, and writes the result into PostGIS. It's the only piece of the system with write access to the datalake — the API server never touches it directly.
+Switching between them helps whether the goal is detailed terrain inspection or presenting results to a client.
 
-## Stack
+![Map style controls](Photos/UI%20Mapbox%20Templates.PNG)
 
-| Layer | Tech |
-|---|---|
-| Frontend | React 19, Vite, Mapbox GL JS, react-map-gl |
-| Backend API | FastAPI, SQLAlchemy, PostGIS |
-| Tile serving | Martin (vector tiles) |
-| Orchestration | Apache Airflow |
-| Geoprocessing | rasterio, GeoPandas, NumPy, contextily |
-| Reporting | ReportLab, Matplotlib |
-| Storage | Azure Blob Storage |
-| Internal auth | Cloudflare Access service tokens |
-| Containers | Docker, one `Dockerfile` per service |
+---
 
-## Repo layout
+## System architecture
+
+The application is split into four services that communicate with each other.
+
+The React frontend is responsible for the user interface. It displays the interactive map, dashboards, drawing tools, and pipeline monitor. It only communicates with the backend and never talks directly to Airflow or Azure.
+
+The FastAPI backend acts as the main API layer. It stores and retrieves information from PostGIS, exposes dashboard endpoints, and securely proxies requests to Airflow through Cloudflare Access so the browser never needs orchestration credentials.
+
+The Airflow pipeline performs the heavy geospatial processing. It downloads elevation datasets, aligns them, computes the DEM of Difference, extracts change polygons, generates PDF reports, uploads results to Azure Blob Storage, and caches completed analyses so identical requests are not processed twice.
+
+A separate ingestion service continuously watches Azure Blob Storage for completed pipeline outputs. When new results appear, it reverse-geocodes the site's country, stores all metadata inside PostGIS, and makes the analysis available to the frontend.
 
 ```
-backend/       FastAPI service, PostGIS schema, Martin tile config
-frontend/      React + Mapbox viewer
-Pipeline/      Airflow DAG and the DEM-diff processing scripts it runs
-Microservice/  Azure Blob → PostGIS ingestion watcher
-Photos/        Screenshots used in this README
+Browser (React)
+        │
+        ▼
+Backend (FastAPI)
+        │
+        ├────────► PostGIS
+        │
+        ├────────► Airflow REST API
+        │
+        ▼
+Airflow Pipeline
+        │
+        ▼
+Fetch DEMs
+        │
+Align
+        │
+Difference
+        │
+Vectorise
+        │
+Generate PDF
+        │
+Upload to Azure Blob
+        │
+        ▼
+Ingestion Service
+        │
+        ▼
+PostGIS
 ```
 
-There's no root docker-compose stitching all four together on purpose — in production they lived on separate infra, connected through Azure and Cloudflare rather than one shared docker network, and this repo mirrors that.
+---
+
+## Technologies
+
+**Frontend**
+- React 19
+- Vite
+- Mapbox GL JS
+- react-map-gl
+
+**Backend**
+- FastAPI
+- SQLAlchemy
+- PostGIS
+- Martin (Vector Tile Server)
+
+**Pipeline**
+- Apache Airflow
+- Rasterio
+- GeoPandas
+- NumPy
+- Contextily
+
+**Reporting**
+- ReportLab
+- Matplotlib
+
+**Storage**
+- Azure Blob Storage
+
+**Infrastructure**
+- Cloudflare Access
+- Docker
+
+---
+
+## Repository structure
+
+`frontend/`
+React application containing the interactive map, dashboards, drawing tools, and pipeline monitor.
+
+`backend/`
+FastAPI service, PostGIS models, dashboard endpoints, and Martin vector tile configuration.
+
+`Pipeline/`
+The Airflow DAG together with the complete DEM processing workflow responsible for terrain comparison, report generation, and Azure uploads.
+
+`Microservice/`
+The ingestion watcher that monitors Azure Blob Storage, enriches completed analyses, and stores them in PostGIS.
+
+`Photos/`
+Screenshots used throughout this README.
+
+There is intentionally no root Docker Compose file connecting every service together. In production these services were deployed independently and communicated through Azure and Cloudflare rather than sharing a single Docker network, and this repository mirrors that architecture.
